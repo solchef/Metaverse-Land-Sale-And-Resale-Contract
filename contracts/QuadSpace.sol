@@ -279,7 +279,7 @@ contract TMDW is ERC721Enumerable, Ownable, ERC721Burnable, ERC721Pausable, Roya
     }
 
     function getParcels() public view returns (Parcel[] memory){
-        Parcel[] memory lParcels = new Parcel[](parcelCount);
+        Parcel[] memory lParcels;
         for (uint i = 0; i < parcelCount; i++) {
             Parcel storage lParcel = parcels[i];
             lParcels[i] = lParcel;
@@ -311,8 +311,8 @@ contract TMDW is ERC721Enumerable, Ownable, ERC721Burnable, ERC721Pausable, Roya
           if(prev_width == width && prev_height == height){
             parcels[parcelId] = (Parcel(parcelCoord, width, height, _msgSender(), parcelUri));
          }else{
-             require(prev_width == width || prev_height == height,"Parcel splitting requires width or height to be the same");
-             
+            //  require(prev_width == width || prev_height == height,"Parcel splitting requires width or height to be the same");'
+
             _createParcel(_msgSender(), parcelId, width, height, parcelUri);
 
             if(prev_width == width){
