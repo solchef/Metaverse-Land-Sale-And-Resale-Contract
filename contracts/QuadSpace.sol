@@ -1,6 +1,123 @@
+jim, [15 Aug 2022, 3:24:58 PM]:
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.7;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "./ERC721Pausable.sol";
+//  dependencies injected for royalties configuration
+import "./RoyaltiesV2Impl.sol";
+import "./LibPart.sol";
+import "./LibRoyaltiesV2.sol";
+
+
+contract TMDW is ERC721Enumerable, Ownable, ERC721Burnable, ERC721Pausable, RoyaltiesV2Impl {
+
+    using SafeMath for uint256;
+    using Counters for Counters.Counter;
+    
+    struct Parcel {
+        uint coord;
+        uint width;
+        uint height;
+        address owner;
+        string uri;
+     }
+     
+    Counters.Counter private _tokenIdTracker;
+
+    bool public SALE_OPEN = false;
+
+    uint256 public constant QUAD_COLUMNS = 1000;
+    uint256 public constant QUAD_ROWS = 1000;
+    uint256 private constant MAX_QUADS = QUAD_COLUMNS * QUAD_COLUMNS; 
+    uint256 private constant MAX_MINT = QUAD_COLUMNS * QUAD_COLUMNS; 
+
+    uint256 private _price;
+    uint256 private _maxQuads;
+    uint256 private _maxMint;
+    uint96 private _royaltyBPS;
+    bool public canMintCenter = false;
+    bool public canMintSpecial = false;
+    bool public lockFreestyle = true;
+    bool public transferable = false;
+
+    mapping(uint256 => bool) private _isOccupiedId;
+    uint256[] private _occupiedList;
+    uint public parcelCount;
+    mapping(uint256=>Parcel) public parcels;
+    mapping(address => bool) public _whitelist;
+    bool private _isPresale;
+    string private baseTokenURI;
+
+    event QuadMint(address to, uint256 indexed id);
+    event NewParcel(address to, uint256 indexed id);
+
+    bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
+
+    modifier saleIsOpen {
+        if (_msgSender() != owner()) {
+            require(SALE_OPEN == true, "SALES: Please wait a big longer before buying Quads ;)");
+        }
+        require(_totalSupply() <= MAX_QUADS, "SALES: Sale end");
+
+        if (_msgSender() != owner()) {
+            require(!paused(), "PAUSABLE: Paused");
+        }
+        _;
+    }
+
+    modifier onlyValidGroup(uint256 tokenId, uint8 width, uint8 height) {
+        require(width > 0, " width must be > 0");
+        require(height > 0, " height must be > 0");
+        _;
+    }
+
+       constructor (string memory baseURI) ERC721("THE MILLION DOLLAR WEBSITE", "TMDW") {
+         setBaseURI(baseURI);
+        _maxQuads = MAX_QUADS;
+        _maxMint = MAX_QUADS;
+        _royaltyBPS = 1000;
+         parcelCount = 0;
+    }
+
+
+    function mint(address payable _to, uint256 tokenId, uint8 width, uint8 height, string memory parcelUri) public payable saleIsOpen onlyValidGroup(tokenId, width, height) {
+        uint256 total = _totalSupply();
+        uint256 totalMints = width * height;
+        require(total <= _maxQuads, "MINT: Please go to the Opensea to buy a quad.");
+        require(totalMints > 0, "MDTP: insufficient quantity");
+        require(canMintCenter || !isAnyInMiddle(tokenId, width, height), "Cannot mint center tokens");
+        require(canMintSpecial || !isAnyASpecialQuad(tokenId, width, height), "MiCannot mint special tokens");
+        
+        if (_to != owner()) {
+            require(msg.value >= price(totalMints), "MINT: Current value is below the sales price of a quad");
+        }
+
+         for (uint8 y = 0; y < height; y++) {
+            for (uint8 x = 0; x < width; x++) {
+                uint256 innerTokenId = tokenId + (QUAD_ROWS * y) + x;
+               require(_isOccupiedId[innerTokenId] == false, "MINT: Those quads already have been claimed");
+            }
+        }
+
+         for (uint8 y = 0; y < height; y++) {
+            for (uint8 x = 0; x < width; x++) {
+                uint256 innerTokenId = tokenId + (QUAD_ROWS * y) + x;
+                _mintAQuad(_to, innerTokenId);
+            }
+        }
+        _createParcel
+
 (_to, tokenId, width, height, parcelUri);
         _widthdraw(owner(), address(this).balance);
     }
+...
 
     function _createParcel(address  _to, uint256 tokenId, uint256 width, uint256 height, string memory parcelUri) private {
          parcels[parcelCount + 1] = (Parcel(tokenId, width, height, _to, parcelUri));
