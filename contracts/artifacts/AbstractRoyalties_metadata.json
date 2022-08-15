@@ -1,0 +1,53 @@
+{
+	"compiler": {
+		"version": "0.8.7+commit.e28d00a7"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/AbstractRoyalties.sol": "AbstractRoyalties"
+		},
+		"evmVersion": "london",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/AbstractRoyalties.sol": {
+			"keccak256": "0x900c2931a3706c498c4a8c6139baddfdd84c1a3786ed321e4dfb93d3ea7ae20a",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://57ecd436e508a3b9ecfee07bd2a8b32243bf82d5bc154954a5217845c1d82abf",
+				"dweb:/ipfs/QmaCZVNQeAn94T5hUd2NFYyGqL5oaT29bckM8vbYU4NbiN"
+			]
+		},
+		"contracts/LibPart.sol": {
+			"keccak256": "0xf9fd0d768bdc8ca426790737f8548484573148dd5ed0365c31d98a06ecc0ed5b",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://a2ba75721d1959d7932d7818e8acfa9823ed82e3364ce761dc9255fabc1651e0",
+				"dweb:/ipfs/QmSdFnmtyEUSfoh7DLBAZdtYfTKkz35bBWgEoNsfheyBL9"
+			]
+		}
+	},
+	"version": 1
+}
