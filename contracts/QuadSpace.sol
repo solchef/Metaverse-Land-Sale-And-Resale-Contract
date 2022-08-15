@@ -1,4 +1,3 @@
-jim, [15 Aug 2022, 3:24:58 PM]:
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.7;
