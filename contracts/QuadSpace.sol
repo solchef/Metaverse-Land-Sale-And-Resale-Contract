@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.7;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -9,7 +8,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./ERC721Pausable.sol";
-//  dependencies injected for royalties configuration
+//  dependencies injected for royalties configuration   
 import "./RoyaltiesV2Impl.sol";
 import "./LibPart.sol";
 import "./LibRoyaltiesV2.sol";
@@ -41,6 +40,7 @@ contract TMDW is ERC721Enumerable, Ownable, ERC721Burnable, ERC721Pausable, Roya
     uint256 private _maxQuads;
     uint256 private _maxMint;
     uint96 private _royaltyBPS;
+    
     bool public canMintCenter = false;
     bool public canMintSpecial = false;
     bool public lockFreestyle = true;
@@ -92,7 +92,7 @@ contract TMDW is ERC721Enumerable, Ownable, ERC721Burnable, ERC721Pausable, Roya
         require(total <= _maxQuads, "MINT: Please go to the Opensea to buy a quad.");
         require(totalMints > 0, "MDTP: insufficient quantity");
         require(canMintCenter || !isAnyInMiddle(tokenId, width, height), "Cannot mint center tokens");
-        require(canMintSpecial || !isAnyASpecialQuad(tokenId, width, height), "MiCannot mint special tokens");
+        require(canMintSpecial || !isAnyASpecialQuad(tokenId, width, height), "MintCannot mint special tokens");
         
         if (_to != owner()) {
             require(msg.value >= price(totalMints), "MINT: Current value is below the sales price of a quad");
@@ -104,19 +104,18 @@ contract TMDW is ERC721Enumerable, Ownable, ERC721Burnable, ERC721Pausable, Roya
                require(_isOccupiedId[innerTokenId] == false, "MINT: Those quads already have been claimed");
             }
         }
-
+        
          for (uint8 y = 0; y < height; y++) {
             for (uint8 x = 0; x < width; x++) {
                 uint256 innerTokenId = tokenId + (QUAD_ROWS * y) + x;
                 _mintAQuad(_to, innerTokenId);
             }
         }
-        _createParcel
 
-(_to, tokenId, width, height, parcelUri);
-        _widthdraw(owner(), address(this).balance);
+            _createParcel(_to, tokenId, width, height, parcelUri);
+            _widthdraw(owner(), address(this).balance);
+
     }
-...
 
     function _createParcel(address  _to, uint256 tokenId, uint256 width, uint256 height, string memory parcelUri) private {
          parcels[parcelCount + 1] = (Parcel(tokenId, width, height, _to, parcelUri));
@@ -247,9 +246,7 @@ contract TMDW is ERC721Enumerable, Ownable, ERC721Burnable, ERC721Pausable, Roya
         return _tokenIdTracker.current();
     }
 
-    func
-
-tion occupiedList() public view returns (uint256[] memory) {
+    function occupiedList() public view returns (uint256[] memory) {
         return _occupiedList;
     }
 
@@ -298,42 +295,42 @@ tion occupiedList() public view returns (uint256[] memory) {
         return parcels[parcelId];
     }
 
-    function updateParcelData(uint256 parcelId , uint256 width, uint256 height, string memory parcelUri) public payable returns(uint256) {
+    function updateParcelData(uint256 parcelId, uint256 parcelCoord, uint256 width, uint256 height, string memory parcelUri) public returns(uint256) {
         require(parcels[parcelId].owner == _msgSender(),"Only owner can update");
-        
-        address  parcelOwner =  _msgSender();
+
         uint256 prev_width = parcels[parcelId].width;
         uint256 prev_height = parcels[parcelId].height;
-        uint256 x = parcelId % QUAD_COLUMNS;
-        uint256 y = parcelId / QUAD_ROWS;
+        uint256 x = parcelCoord % QUAD_COLUMNS;
+        uint256 y = parcelCoord / QUAD_ROWS;
         uint256 prev_x = parcels[parcelId].coord % QUAD_COLUMNS;
         uint256 prev_y = parcels[parcelId].coord / QUAD_ROWS;
 
-         uint256 newId = parcelCount + 1;
-        
+        uint256 newId = parcelCount + 1;
+         
         if(lockFreestyle == true){
           if(prev_width == width && prev_height == height){
-            parcels[parcelId] = (Parcel(parcelId, width, height, parcelOwner, parcelUri));
+            parcels[parcelId] = (Parcel(parcelCoord, width, height, _msgSender(), parcelUri));
          }else{
              require(prev_width == width || prev_height == height,"Parcel splitting requires width or height to be the same");
-            _createParcel(parcelOwner, parcelId, width, height, parcelUri);
+             
+            _createParcel(_msgSender(), parcelId, width, height, parcelUri);
+
             if(prev_width == width){
                 if(prev_y > y){
-                    parcels[parcelId] = (Parcel((QUAD_ROWS * (y - height)) + x, width, prev_height - height, parcelOwner, parcelUri));
+                    parcels[parcelId] = (Parcel((QUAD_ROWS * (y - height)) + x, width, prev_height - height, _msgSender(), parcelUri));
                 }else{
-                    parcels[parcelId] = (Parcel((QUAD_ROWS * (y + height)) + x, width, height - prev_height, parcelOwner, parcelUri));
+                    parcels[parcelId] = (Parcel((QUAD_ROWS * (y + height)) + x, width, height - prev_height, _msgSender(), parcelUri));
                 }
             }else if(prev_height == height){
                 if(prev_x > x){
-                    parcels[parcelId] = (Parcel((QUAD_ROWS * y) + (x - width), prev_width - width, height, parcelOwner, parcelUri));
+                    parcels[parcelId] = (Parcel((QUAD_ROWS * y) + (x - width), prev_width - width, height, _msgSender(), parcelUri));
                 }else{
-                    parcels[parcelId] = (Parcel((QUAD_ROWS * y) + (x + width), width - prev_width, height, parcelOwner, parcelUri));
+                    parcels[parcelId] = (Parcel((QUAD_ROWS * y) + (x + width), width - prev_width, height, _msgSender(), parcelUri));
                 }            
             }
-            
          }
         }else{
-            _createParcel(parcelOwner, parcelId, width, height, parcelUri);
+            _createParcel(_msgSender(), parcelCoord, width, height, parcelUri);
         }
         return newId;
     }
@@ -359,9 +356,7 @@ tion occupiedList() public view returns (uint256[] memory) {
         address to,
         uint256 tokenId
     ) internal virtual override(ERC721, ERC721Enumerable, ERC721Pausable) {
-        super._beforeTokenTransfer(from, to, toke
-
-nId);
+        super._beforeTokenTransfer(from, to, tokenId);
     }
 
     //configure initial royalties for Rariable on minting
@@ -379,7 +374,7 @@ nId);
         _royalties[0].account = _royaltiesRecipientAddress;
         _saveRoyalties(_tokenId, _royalties);
     }
-
+    
     //configure royalties for Mintable using the ERC2981 standard
     function royaltyInfo(uint256 _tokenId, uint256 _salePrice) external view returns (address receiver, uint256 royaltyAmount) {
       //use the same royalties that were saved for Rariable
