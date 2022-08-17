@@ -175,7 +175,6 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
         }
 
             _createParcel(_to, tokenId, width, height, parcelUri);
-            _widthdraw(owner(), address(this).balance);
 
     }
 
@@ -352,8 +351,6 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
         _royalties[0].account = _royaltiesRecipientAddress;
         _saveRoyalties(_tokenId, _royalties);
     }
-
-  
 
     function setDefaultContentBaseURI(string memory newDefaultContentBaseURI) external onlyOwner {
         _defaultContentBaseURI = newDefaultContentBaseURI;
