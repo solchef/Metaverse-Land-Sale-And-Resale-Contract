@@ -213,14 +213,16 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
         if(prev_width == width && prev_height == height){
             parcels[parcelId] = (Parcel(parcelCoord, width, height, _msgSender(), parcelUri));
          }else{
+             
              _createParcel(_msgSender(), parcelCoord, width, height, parcelUri);
+
             if(prev_width == width){
                 if(parcels[parcelId].coord/1000 == y){
                     parcels[parcelId] = (Parcel(parcelCoord + (1000 * height), width, prev_height - height, _msgSender(), parcelUri));
                 }else{
                     parcels[parcelId] = (Parcel(parcels[parcelId].coord, width, prev_height - height, _msgSender(), parcelUri));
                 }
-                return;
+                
             }
             if(prev_height == height){             
                 if(parcels[parcelId].coord % 1000 == x){
@@ -228,7 +230,7 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
                 }else{
                     parcels[parcelId] = (Parcel(parcels[parcelId].coord, prev_width - width, height, _msgSender(), parcelUri));
                 }  
-                return;          
+                   
             }
 
             if(prev_height != height && prev_width != width){
