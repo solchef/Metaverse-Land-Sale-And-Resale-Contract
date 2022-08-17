@@ -18,14 +18,9 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
 
     using SafeMath for uint256;
     using Counters for Counters.Counter;
- 
     //globals
     Counters.Counter private _tokenIdTracker;
-    bool public SALE_OPEN = false;
-    uint256 public constant QUAD_COLUMNS = 1000;
-    uint256 public constant QUAD_ROWS = 1000;
-    uint256 private constant MAX_QUADS = QUAD_COLUMNS * QUAD_COLUMNS; 
-    uint256 private constant MAX_MINT = QUAD_COLUMNS * QUAD_COLUMNS; 
+    bool public saleOpen = false;
     uint256 private _price;
     uint256 private _maxQuads;
     uint256 private _maxMint;
@@ -40,6 +35,10 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
     string private baseTokenURI;
     string public _defaultContentBaseURI;
     bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
+    uint256 public constant QUAD_COLUMNS = 1000;
+    uint256 public constant QUAD_ROWS = 1000;
+    uint256 private constant MAX_QUADS = QUAD_COLUMNS * QUAD_COLUMNS; 
+    uint256 private constant MAX_MINT = QUAD_COLUMNS * QUAD_COLUMNS; 
     struct Parcel { uint coord; uint width; uint height; address owner; string uri;}
 
     //data
@@ -67,7 +66,7 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
     //  modifiers
     modifier saleIsOpen {
         if (_msgSender() != owner()) {
-            require(SALE_OPEN == true, "SALES: Please wait a big longer before buying Quads ;)");
+            require(saleOpen == true, "SALES: Please wait a big longer before buying Quads ;)");
         }
         require(_totalSupply() <= MAX_QUADS, "SALES: Sale end");
 
@@ -205,38 +204,38 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
    
         require(lockFreestyle == true , "Cannot edit on freestyle mode at the moment. use different update method");
 
-        uint256 prev_width = parcels[parcelId].width;
-        uint256 prev_height = parcels[parcelId].height;
+        uint256 prevWidth = parcels[parcelId].width;
+        uint256 prevHeight = parcels[parcelId].height;
         uint256 x = parcelCoord % QUAD_COLUMNS;
         uint256 y = parcelCoord / QUAD_ROWS;
         
-        if(prev_width == width && prev_height == height){
+        if(prevWidth == width && prevHeight == height){
             parcels[parcelId] = (Parcel(parcelCoord, width, height, _msgSender(), parcelUri));
          }else{
              
              _createParcel(_msgSender(), parcelCoord, width, height, parcelUri);
 
-            if(prev_width == width){
+            if(prevWidth == width){
                 if(parcels[parcelId].coord/1000 == y){
-                    parcels[parcelId] = (Parcel(parcelCoord + (1000 * height), width, prev_height - height, _msgSender(), parcelUri));
+                    parcels[parcelId] = (Parcel(parcelCoord + (1000 * height), width, prevHeight - height, _msgSender(), parcelUri));
                 }else{
-                    parcels[parcelId] = (Parcel(parcels[parcelId].coord, width, prev_height - height, _msgSender(), parcelUri));
+                    parcels[parcelId] = (Parcel(parcels[parcelId].coord, width, prevHeight - height, _msgSender(), parcelUri));
                 }
                 
             }
-            if(prev_height == height){             
+            if(prevHeight == height){             
                 if(parcels[parcelId].coord % 1000 == x){
-                    parcels[parcelId] = (Parcel(parcelCoord + width, prev_width - width, height, _msgSender(), parcelUri));
+                    parcels[parcelId] = (Parcel(parcelCoord + width, prevWidth - width, height, _msgSender(), parcelUri));
                 }else{
-                    parcels[parcelId] = (Parcel(parcels[parcelId].coord, prev_width - width, height, _msgSender(), parcelUri));
+                    parcels[parcelId] = (Parcel(parcels[parcelId].coord, prevWidth - width, height, _msgSender(), parcelUri));
                 }  
                    
             }
 
-            if(prev_height != height && prev_width != width){
+            if(prevHeight != height && prevWidth != width){
                     if(parcelCoord == parcels[parcelId].coord){
-                         parcels[parcelId] = (Parcel(parcelCoord + width, prev_width - width, height, _msgSender(), parcelUri));
-                        _createParcel(_msgSender(), parcelCoord + (1000 * height), prev_width, prev_height - height, parcelUri);
+                         parcels[parcelId] = (Parcel(parcelCoord + width, prevWidth - width, height, _msgSender(), parcelUri));
+                        _createParcel(_msgSender(), parcelCoord + (1000 * height), prevWidth, prevHeight - height, parcelUri);
                     }
             }
 
@@ -268,7 +267,7 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
     //Control methods
     function startPreSale() public onlyOwner {
         _isPresale = true;
-        SALE_OPEN = true;
+        saleOpen = true;
     }
 
     function isTransferable(bool _choice) public onlyOwner{
@@ -277,13 +276,13 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
 
     function startPublicSale() public onlyOwner {
         _isPresale = false;
-        SALE_OPEN = true;
+        saleOpen = true;
         _maxQuads = MAX_QUADS;
         _maxMint = MAX_MINT;
     }
 
     function flipSaleState() public onlyOwner {
-        SALE_OPEN = !SALE_OPEN;
+        saleOpen = !saleOpen;
     }
 
     function addToWhitelist(address whiltelisted) public onlyOwner {
@@ -323,16 +322,10 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
         lockFreestyle = !lockFreestyle;
     }
 
-    function withdrawAll() public payable onlyOwner {
+
+    function withdraw() external onlyOwner {
         uint256 balance = address(this).balance;
-        require(balance > 0, "WITHDRAW: No balance in contract");
-
-        _widthdraw(owner(), address(this).balance);
-    }
-
-    function _widthdraw(address _address, uint256 _amount) private {
-        (bool success, ) = _address.call{value: _amount}("");
-        require(success, "WITHDRAW: Transfer failed.");
+        payable(msg.sender).transfer(balance);
     }
 
     function _beforeTokenTransfer(
