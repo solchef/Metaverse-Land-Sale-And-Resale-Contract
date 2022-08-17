@@ -49,7 +49,6 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
     
 
     //events
-
     event QuadMint(address to, uint256 indexed id);
     event NewParcel(address to, uint256 indexed id);
     event TokenContentURIChanged(uint256 indexed tokenId);
@@ -62,7 +61,7 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
         _royaltyBPS = 1000;
          parcelCount = 0;
     }
-
+    
     //  modifiers
     modifier saleIsOpen {
         if (_msgSender() != owner()) {
@@ -98,7 +97,6 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
     }
 
     // utils
-
      function isAnyInMiddle(uint256 tokenId, uint256 width, uint256 height) internal pure returns (bool) {
         for (uint256 y = 0; y < height; y++) {
             for (uint256 x = 0; x < width; x++) {
@@ -173,15 +171,12 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
                 _mintAQuad(_to, innerTokenId);
             }
         }
-
             _createParcel(_to, tokenId, width, height, parcelUri);
-
     }
 
     function _createParcel(address  _to, uint256 tokenId, uint256 width, uint256 height, string memory parcelUri) private {
          parcels[parcelCount + 1] = (Parcel(tokenId, width, height, _to, parcelUri));
          parcelCount  = parcelCount + 1;
-
          emit NewParcel(_to, tokenId);
     }
 
@@ -200,7 +195,7 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
     }
 
      function updateParcelData(uint256 parcelId, uint256 parcelCoord, uint256 width, uint256 height, string memory parcelUri) public onlyTotalQuadsOwner(parcelCoord, width, height){
-   
+         
         require(lockFreestyle == true , "Cannot edit on freestyle mode at the moment. use different update method");
 
         uint256 prevWidth = parcels[parcelId].width;
@@ -243,26 +238,26 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
         emit ParcelUpdated(_msgSender(), parcelId);
     }
 
-    function _setTokenContentURI(uint256 tokenId, string memory contentURI) internal {
+    function _setQuadContentURI(uint256 tokenId, string memory contentURI) internal {
         _tokenContentURIs[tokenId] = contentURI;
         emit TokenContentURIChanged(tokenId);
     }
 
-    function setTokenContentURI(uint256 tokenId, string memory contentURI) public onlyQuadOwner(tokenId) {
-        _setTokenContentURI(tokenId, contentURI);
+    function setQuadContentURI(uint256 tokenId, string memory contentURI) public onlyQuadOwner(tokenId) {
+        _setQuadContentURI(tokenId, contentURI);
     }
 
-    function setTokenGroupContentURIs(uint256 tokenId, uint256 width, uint256 height, string[] memory contentURIs) public onlyTotalQuadsOwner(tokenId, width, height) onlyValidGroup(tokenId, width, height) {
+    function setQuadGroupContentURI(uint256 tokenId, uint256 width, uint256 height, string[] memory contentURIs) public onlyTotalQuadsOwner(tokenId, width, height) onlyValidGroup(tokenId, width, height) {
         require(width * height == contentURIs.length, "length of contentURIs must be the same as width * height");
         for (uint256 y = 0; y < height; y++) {
             for (uint256 x = 0; x < width; x++) {
                 uint256 index = (width * y) + x;
                 uint256 innerTokenId = tokenId + (QUAD_ROWS * y) + x;
-                _setTokenContentURI(innerTokenId, contentURIs[index]);
+                _setQuadContentURI(innerTokenId, contentURIs[index]);
             }
         }
     }
-
+    
     //Control methods
     function startPreSale() public onlyOwner {
         _isPresale = true;
@@ -316,11 +311,9 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
         canMintSpecial = newCanMintSpecial;
     }
 
-
        function lockFreeStyleToggle() public  onlyOwner {
         lockFreestyle = !lockFreestyle;
     }
-
 
     function withdraw() external onlyOwner {
         uint256 balance = address(this).balance;
@@ -415,7 +408,6 @@ contract TMDW is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable, ERC721Burn
         return parcels[parcelId];
     }
 
-    
     function getParcelTokens(uint256 _parcelId) 
         public 
         view
